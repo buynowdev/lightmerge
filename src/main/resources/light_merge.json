@@ -1,0 +1,21 @@
+{
+	"safeConfig": {
+		"privateKeyPosition": "~/.ssh/id_rsa"
+	},
+	"projectRepository": {
+		"projects": [{
+			"projectName": "your project name",
+			"remoteAddress": "your remote address",
+			"swimlaneMap": {
+				"qa": {
+					"swimlaneName": "qa",
+					"remotePushBranchName": "qa"
+				},
+				"rd": {
+					"swimlaneName": "rd",
+					"remotePushBranchName": "rd"
+				}
+			}
+		}]
+	}
+}

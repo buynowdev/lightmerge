@@ -1,0 +1,21 @@
+{
+	"safeConfig": {
+		"privateKeyPosition": "~/.ssh/id_rsa"
+	},
+	"projectRepository": {
+		"projects": [{
+			"projectName": "lightmerge-test",
+			"remoteAddress": "git@github.com:ZhaoYueNing/lightmerge-test.git",
+			"swimlaneMap": {
+				"qa": {
+					"swimlaneName": "qa",
+					"remotePushBranchName": "qa"
+				},
+				"rd": {
+					"swimlaneName": "rd",
+					"remotePushBranchName": "rd"
+				}
+			}
+		}]
+	}
+}
