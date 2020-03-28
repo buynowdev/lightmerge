@@ -64,6 +64,7 @@ public class ProjectRest {
             if (!result.isSuccess()) {
                 return result;
             }
+
             // 删除远程分支
             project.removeRemoteBeanch(project.getSwimlane(mergeRequest.getSwimlaneName()).getRemotePushBranchName());
             // 推送到远端
@@ -75,7 +76,7 @@ public class ProjectRest {
                     .collect(Collectors.toList());
             project.getSwimlane(mergeRequest.getSwimlaneName()).setSelectedBranches(branchs);
 
-            return Result.success();
+            return Result.success().setData(mergeRequest.getBranchNames());
         } finally {
             project.unlockProject();
         }
