@@ -1,5 +1,6 @@
 package cn.zynworld.lightmerge.rest;
 
+import cn.zynworld.lightmerge.common.Constants;
 import cn.zynworld.lightmerge.common.Result;
 import cn.zynworld.lightmerge.domain.GitBranch;
 import cn.zynworld.lightmerge.domain.GitProject;
@@ -10,6 +11,7 @@ import cn.zynworld.lightmerge.rest.req.ProjectMergeRequest;
 import cn.zynworld.lightmerge.rest.req.ProjectReloadRequest;
 import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -49,12 +51,17 @@ public class ProjectRest {
         if (!lockResult) {
             return Result.fail().setMsg("请勿同时合并项目!");
         }
+        if (CollectionUtils.isEmpty(mergeRequest.getBranchNames())) {
+            return Result.fail().setMsg("合并分支为空");
+        }
+
         try (Git git = project.localGit()){
 
             // 新分支名称
             String tmpBranchName = "TMP-" + UUID.randomUUID().toString();
-            // 拉取 master 分支
-            project.fetch("master", tmpBranchName);
+            // 拉取 第一个分支
+            String firstBranchName = mergeRequest.getBranchNames().get(Constants.FIRST);
+            project.fetch(firstBranchName, tmpBranchName);
             // 对当前分支 reset
             project.resetHard();
             // 切换分支
