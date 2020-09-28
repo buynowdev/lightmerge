@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class SafeConfig {
     // 默认私钥位置
-    private String privateKeyPosition = "~/.ssh/id_rsa3";
+    private String privateKeyPosition = "~/.ssh/id_rsa";
 }

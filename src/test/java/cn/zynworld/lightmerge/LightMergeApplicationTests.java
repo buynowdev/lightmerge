@@ -14,4 +14,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class LightMergeApplicationTests {
 
+    @Test
+    public void test() {
+
+    }
 }
