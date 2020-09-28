@@ -1,6 +1,6 @@
 # LightMerge
 
-![](https://tva1.sinaimg.cn/large/007S8ZIlgy1gj6happv8dj31h70oxafb.jpg)
+![image-20200928185653623](https://tva1.sinaimg.cn/large/007S8ZIlgy1gj6kd3p88yj31jj0u0jwr.jpg)
 
 ## 目的
 
@@ -72,10 +72,6 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 - 下载 [lightmerge-x.jar](https://github.com/ZhaoYueNing/lightmerge/releases)
 
 - `java -jar light-merge-*.jar --server.port=9000` 
-
-## 已经使用团队
-### 快手深圳
-![img](https://static.yximgs.com/udata/pkg/fe/kwai_home_logo.9fa14a37.png)
 
 ## 开发
 - 前端 @Jarvan
