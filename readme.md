@@ -71,7 +71,7 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 
 - 下载 [lightmerge-x.jar](https://github.com/ZhaoYueNing/lightmerge/releases)
 
-- `java -jar lightmerge-x.jar -- server.port=9000` 
+- `java -jar light-merge-*.jar --server.port=9000` 
 
 ## 已经使用团队
 ### 快手深圳
