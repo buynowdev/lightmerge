@@ -77,7 +77,7 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 ### 快手深圳
 ![img](https://static.yximgs.com/udata/pkg/fe/kwai_home_logo.9fa14a37.png)
 
-## 贡献
+## 开发
 - 前端 @Jarvan
 - 后端 @ZhaoYueNing
 
