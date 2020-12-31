@@ -16,6 +16,7 @@ import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.util.FileUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,12 +24,18 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @ToString
 public class GitProject implements Serializable {
     private static final long serialVersionUID = 420677041482106689L;
+
+    /**
+     * 过滤分支前缀
+     */
+    private List<String> filterBranchNames = new ArrayList<>();
 
     private String projectName;
     private String remoteAddress;
@@ -197,15 +204,37 @@ public class GitProject implements Serializable {
                     .setRemote(this.remoteAddress)
                     .setHeads(true)
                     .call();
-            return refs.stream().map(ref -> {
-                GitBranch branch = new GitBranch();
-                branch.setBranchName(ref.getName().substring(11));
-                return branch;
-            }).collect(Collectors.toList());
+            return refs.stream()
+                    .map(parseBranchName())
+                    .filter(this::filterByBranchName)
+                    .collect(Collectors.toList());
         } catch (GitAPIException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private boolean filterByBranchName(GitBranch gitBranch) {
+        if (CollectionUtils.isEmpty(filterBranchNames)) {
+            return true;
+        }
+
+        for (String filterBranchName : filterBranchNames) {
+            String branchName = gitBranch.getBranchName();
+            if (branchName.startsWith(filterBranchName)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private Function<Ref, GitBranch> parseBranchName() {
+        return ref -> {
+            GitBranch branch = new GitBranch();
+            branch.setBranchName(ref.getName().substring(11));
+            return branch;
+        };
     }
 
     public Result fetch(String remoteBranchName, String localBranchName) {
@@ -273,5 +302,13 @@ public class GitProject implements Serializable {
 
     public void setSafeConfig(SafeConfig safeConfig) {
         this.safeConfig = safeConfig;
+    }
+
+    public List<String> getFilterBranchNames() {
+        return filterBranchNames;
+    }
+
+    public void setFilterBranchNames(List<String> filterBranchNames) {
+        this.filterBranchNames = filterBranchNames;
     }
 }
