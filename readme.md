@@ -42,7 +42,7 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 	},
 	"projectRepository": {
         	# 项目配置，每一个都是一个项目
-		"projects": [
+		"projectMap": [
 			{
 				# 项目名称
 				"projectName": "your project name",
