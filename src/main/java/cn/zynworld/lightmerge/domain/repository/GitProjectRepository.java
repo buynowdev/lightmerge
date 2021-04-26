@@ -29,7 +29,7 @@ public class GitProjectRepository {
         projectMap.put(project.getProjectName(), project);
     }
 
-    public void setProjectMap(Map<String, GitProject> projectMap) {
+    public void setProjects(Map<String, GitProject> projectMap) {
         this.projectMap = projectMap;
     }
 
