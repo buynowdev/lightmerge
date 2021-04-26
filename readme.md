@@ -37,11 +37,12 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 {
 	"safeConfig": {
         	# 由于采用ssh访问git仓库，这里填入你的私钥位置
+		# 由于私钥头的区别，请使用 ssh-keygen -m PEM -t rsa -b 4096 命令来生成私钥并将填入此
 		"privateKeyPosition": "~/.ssh/id_rsa"
 	},
 	"projectRepository": {
         	# 项目配置，每一个都是一个项目
-		"projects": [
+		"projectMap": [
 			{
 				# 项目名称
 				"projectName": "your project name",
