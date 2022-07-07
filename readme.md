@@ -42,10 +42,10 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 	},
 	"projectRepository": {
         	# 项目配置，每一个都是一个项目
-		"projects": [
-			{
+		"projects": {
+			"yourProjectName": {
 				# 项目名称
-				"projectName": "your project name",
+				"projectName": "yourProjectName",
 				# 项目的ssh地址
 				"remoteAddress": "git@github.com:ZhaoYueNing/lightmerge.git",
 				# 泳道，这里的泳道实际指一个远程目标分支
@@ -63,7 +63,7 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 				    }
 				}
 			}
-		]
+		}
 	}
 }
 ```
