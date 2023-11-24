@@ -73,7 +73,8 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 - 下载 [lightmerge-x.jar](https://github.com/ZhaoYueNing/lightmerge/releases)
 
 - `java -jar light-merge-*.jar --server.port=9000` 
-- docker镜像 `buynow/lightmerge`
+- docker镜像 `buynow/lightmerge` 
+- `docker run -p 8099:8099 -v {你本地.lightmerge 的配置目录}:/root/.lightmerge/ buynow/lightmerge  java -jar /app/light-merge.jar --server-port=8090`
 ## 开发
 - 前端 @Jarvan
 - 后端 @ZhaoYueNing
