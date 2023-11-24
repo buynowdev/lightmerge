@@ -164,7 +164,7 @@ public class GitProject implements Serializable {
                 return Result.fail().setMsg("branchName:" +branchName + " " + mergeResult.getMergeResult().getMergeStatus().toString());
             }
             return Result.success();
-        } catch (GitAPIException e) {
+        } catch (Exception e) {
             log.error("fail. GitProject:{}", this, e);
             return Result.fail().setMsg(e.getMessage());
         }
