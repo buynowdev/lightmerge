@@ -11,7 +11,9 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
@@ -56,7 +58,7 @@ public class GitProject implements Serializable {
             localGit.reset().setMode(ResetCommand.ResetType.HARD).call();
 
         } catch (GitAPIException e) {
-            log.error("resetHard fail. GitProject:{} ", this, e);
+            log.error("resetHard failed. GitProject:{} ", this, e);
         }
     }
 
@@ -66,7 +68,7 @@ public class GitProject implements Serializable {
                     .setName(Constants.BRANCH_PRE + branchName)
                     .call();
         } catch (GitAPIException e) {
-            log.error("resetHard fail. GitProject:{} ", this, e);
+            log.error("resetHard failed. GitProject:{} ", this, e);
         }
     }
 
@@ -92,7 +94,7 @@ public class GitProject implements Serializable {
 
             return Objects.nonNull(localGit());
         } catch (Exception e) {
-            log.info("init project fail. GitProject:{}", this, e);
+            log.info("init project failed. GitProject:{}", this, e);
             return false;
         } finally {
             GitHelper.closeGit(git);
@@ -124,7 +126,7 @@ public class GitProject implements Serializable {
                     .call().iterator().next();
             return Result.success();
         } catch (Exception e) {
-            log.error("fail. GitProject:{} ", this, e);
+            log.error("failed. GitProject:{} ", this, e);
             return Result.fail().setMsg(e.getMessage());
         }
     }
@@ -143,30 +145,40 @@ public class GitProject implements Serializable {
                     .call().iterator().next();
             return Result.success();
         } catch (Exception e) {
-            log.error("fail.GitProject:{}", this, e);
+            log.error("failed.GitProject:{}", this, e);
             return Result.fail().setMsg(e.getMessage());
         }
+    }
+
+    public static enum MergeStatus {
+        SUCCESS,
+        FAILED_BRANCH_NOT_EXIST,
+        FAILED_CONFLICT,
+        FAILED_UNKNOW,
     }
 
     /**
      * 从远程分支拉取
      */
-    public Result mergeRemoteBranch(String branchName) {
-        try (Git localGit = localGit()){
+    public MergeStatus mergeRemoteBranch(String branchName) {
+        try (Git localGit = localGit()) {
             PullResult mergeResult = localGit.pull()
                     .setTransportConfigCallback(GitHelper.createTransportConfigCallback(safeConfig))
                     .setRemoteBranchName(branchName)
+                    .setStrategy(MergeStrategy.OURS)
                     .call();
             if (!mergeResult.getMergeResult().getMergeStatus().isSuccessful()) {
-                log.warn("merge fail!. branch:{} status:{}",branchName,mergeResult.getMergeResult().getMergeStatus());
+                log.warn("merge failed!. branch:{} status:{}", branchName, mergeResult.getMergeResult().getMergeStatus());
                 // 将本地仓库复原
                 resetHard();
-                return Result.fail().setMsg("branchName:" +branchName + " " + mergeResult.getMergeResult().getMergeStatus().toString());
+                return MergeStatus.FAILED_CONFLICT;
             }
-            return Result.success();
+            return MergeStatus.SUCCESS;
+        } catch (RefNotAdvertisedException e) {
+            return MergeStatus.FAILED_BRANCH_NOT_EXIST;
         } catch (Exception e) {
-            log.error("fail. GitProject:{}", this, e);
-            return Result.fail().setMsg(e.getMessage());
+            log.error("failed. GitProject:{}", this, e);
+            return MergeStatus.FAILED_UNKNOW;
         }
     }
 
@@ -181,17 +193,21 @@ public class GitProject implements Serializable {
             Iterator<String> iterator = waitMergeBranchSet.iterator();
             while (iterator.hasNext()) {
                 String branchName = iterator.next();
-                Result mergeBranchResult = mergeRemoteBranch(branchName);
-                if (mergeBranchResult.isSuccess()) {
+                MergeStatus status = mergeRemoteBranch(branchName);
+                if (status == MergeStatus.SUCCESS) {
                     successCounter ++;
                     iterator.remove();
+                }
+
+                if (status == MergeStatus.FAILED_BRANCH_NOT_EXIST) {
+                    return Result.fail().setMsg("merge failed! branchs not exist: " + branchName);
                 }
             }
 
         } while (successCounter > 0 && !waitMergeBranchSet.isEmpty());
 
         if (!waitMergeBranchSet.isEmpty()) {
-            return Result.fail().setMsg("merge fail!.branchs: " + waitMergeBranchSet.toString());
+            return Result.fail().setMsg("merge failed! branchs: " + waitMergeBranchSet.toString());
         }
 
         return Result.success();
@@ -247,7 +263,7 @@ public class GitProject implements Serializable {
                     .call();
             return Result.success();
         } catch (Exception e) {
-            log.error("fail. GitProject:{}", this, e);
+            log.error("failed. GitProject:{}", this, e);
             return Result.fail().setMsg(e.getMessage());
         }
     }
