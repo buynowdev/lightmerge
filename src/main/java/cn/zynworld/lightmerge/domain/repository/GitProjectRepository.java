@@ -1,13 +1,10 @@
 package cn.zynworld.lightmerge.domain.repository;
 
 import cn.zynworld.lightmerge.domain.GitProject;
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
-import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author zhaoyuening
