@@ -14,6 +14,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
@@ -52,10 +53,10 @@ public class GitProject implements Serializable {
 
     public GitProject() {}
 
-    public void resetHard() {
+    public void resetHard(String ref) {
         try (Git localGit = localGit()) {
             localGit.add().addFilepattern("*").call();
-            localGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+            localGit.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref).call();
 
         } catch (GitAPIException e) {
             log.error("resetHard failed. GitProject:{} ", this, e);
@@ -131,6 +132,14 @@ public class GitProject implements Serializable {
         }
     }
 
+    public void delete(String branchName) {
+        try (Git localGit = localGit()) {
+            localGit.branchDelete().setBranchNames(branchName).setForce(true).call();
+        } catch (Exception e) {
+            log.error("delete failed. branchName: {}", branchName, e);
+        }
+    }
+
     /**
      * 删除远程分支
      * @param remoteBranchName
@@ -160,18 +169,23 @@ public class GitProject implements Serializable {
     /**
      * 从远程分支拉取
      */
-    public MergeStatus mergeRemoteBranch(String branchName) {
+    public MergeStatus mergeRemoteBranch(String branchName, boolean tryMerge) {
         try (Git localGit = localGit()) {
+            RevCommit commit = localGit.log().call().iterator().next();
+
             PullResult mergeResult = localGit.pull()
                     .setTransportConfigCallback(GitHelper.createTransportConfigCallback(safeConfig))
                     .setRemoteBranchName(branchName)
-                    .setStrategy(MergeStrategy.OURS)
                     .call();
             if (!mergeResult.getMergeResult().getMergeStatus().isSuccessful()) {
                 log.warn("merge failed!. branch:{} status:{}", branchName, mergeResult.getMergeResult().getMergeStatus());
                 // 将本地仓库复原
-                resetHard();
+                resetHard(null);
                 return MergeStatus.FAILED_CONFLICT;
+            }
+
+            if (tryMerge) {
+                resetHard(commit.getId().getName());
             }
             return MergeStatus.SUCCESS;
         } catch (RefNotAdvertisedException e) {
@@ -193,7 +207,7 @@ public class GitProject implements Serializable {
             Iterator<String> iterator = waitMergeBranchSet.iterator();
             while (iterator.hasNext()) {
                 String branchName = iterator.next();
-                MergeStatus status = mergeRemoteBranch(branchName);
+                MergeStatus status = mergeRemoteBranch(branchName, false);
                 if (status == MergeStatus.SUCCESS) {
                     successCounter ++;
                     iterator.remove();

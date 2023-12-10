@@ -6,6 +6,7 @@ import cn.zynworld.lightmerge.domain.GitBranch;
 import cn.zynworld.lightmerge.domain.GitProject;
 import cn.zynworld.lightmerge.domain.Swimlane;
 import cn.zynworld.lightmerge.domain.repository.GitProjectRepository;
+import cn.zynworld.lightmerge.rest.req.ProjectCheckConflictsRequest;
 import cn.zynworld.lightmerge.rest.req.ProjectInitRequest;
 import cn.zynworld.lightmerge.rest.req.ProjectMergeRequest;
 import cn.zynworld.lightmerge.rest.req.ProjectReloadRequest;
@@ -44,6 +45,46 @@ public class ProjectRest {
         return projectRepository.getProjectByName(projectName);
     }
 
+    @PostMapping(path = "checkConflicts")
+    public Result checkConflicts(@RequestBody ProjectCheckConflictsRequest request) {
+        GitProject project = projectRepository.getProjectByName(request.getProjectName());
+        boolean lockResult = project.lockProject();
+        if (!lockResult) {
+            return Result.fail().setMsg("请勿同时合并项目!");
+        }
+
+        try (Git git = project.localGit()){
+            // 新分支名称
+            String tmpBranchName = "TMP-" + UUID.randomUUID().toString();
+            // 拉取 第一个分支
+            String firstBranchName = request.getBaseBranch();
+            Result fetch = project.fetch(firstBranchName, tmpBranchName);
+            // 对当前分支 reset
+            project.resetHard(null);
+            // 切换分支
+            project.checkout(tmpBranchName);
+            if (!fetch.isSuccess()) {
+                return fetch;
+            }
+
+
+            Map<String, GitProject.MergeStatus> mergeResult = new HashMap<>();
+            for (String branch : request.getBranches()) {
+                GitProject.MergeStatus status = project.mergeRemoteBranch(branch, true);
+                mergeResult.put(branch, status);
+            }
+
+            // 对当前分支 reset
+            project.checkout(firstBranchName);
+            project.delete(tmpBranchName);
+
+            project.resetHard(null);
+            return Result.success().setData(mergeResult);
+        } finally {
+            project.unlockProject();
+        }
+    }
+
     @PostMapping(path = "merges")
     public Result merge(@RequestBody ProjectMergeRequest mergeRequest) {
         GitProject project = projectRepository.getProjectByName(mergeRequest.getProjectName());
@@ -51,11 +92,12 @@ public class ProjectRest {
         if (!lockResult) {
             return Result.fail().setMsg("请勿同时合并项目!");
         }
-        if (CollectionUtils.isEmpty(mergeRequest.getBranchNames())) {
-            return Result.fail().setMsg("合并分支为空");
-        }
-
         try (Git git = project.localGit()){
+            if (CollectionUtils.isEmpty(mergeRequest.getBranchNames())) {
+                project.unlockProject();
+                return Result.fail().setMsg("合并分支为空");
+            }
+
 
             // 新分支名称
             String tmpBranchName = "TMP-" + UUID.randomUUID().toString();
@@ -63,11 +105,11 @@ public class ProjectRest {
             String firstBranchName = mergeRequest.getBranchNames().get(Constants.FIRST);
             project.fetch(firstBranchName, tmpBranchName);
             // 对当前分支 reset
-            project.resetHard();
+            project.resetHard(null);
             // 切换分支
             project.checkout(tmpBranchName);
             // 合并多分支
-            Result result = project.mergeRemoteBeanchs(mergeRequest.getBranchNames());
+            Result result = project.mergeRemoteBeanchs(mergeRequest.getBranchNames().subList(1, mergeRequest.getBranchNames().size()));
             if (!result.isSuccess()) {
                 return result;
             }
@@ -76,6 +118,9 @@ public class ProjectRest {
             project.removeRemoteBeanch(project.getSwimlane(mergeRequest.getSwimlaneName()).getRemotePushBranchName());
             // 推送到远端
             project.push(tmpBranchName, project.getSwimlane(mergeRequest.getSwimlaneName()).getRemotePushBranchName());
+            // 删除本地分支
+            project.checkout(firstBranchName);
+            project.delete(tmpBranchName);
 
             // 合并成功修改泳道被选分支
             List<GitBranch> branchs = mergeRequest.getBranchNames().stream()

@@ -1,17 +1,17 @@
 # LightMerge
 
-![image-20200928185653623](https://tva1.sinaimg.cn/large/007S8ZIlgy1gj6kd3p88yj31jj0u0jwr.jpg)
+![img.png](img.png)
+![img_2.png](img_2.png)
 
-## 目的
-
+## 功能
 提高协同开发过程中分支合并部署效率及敏捷度，所谓敏捷度在LightMerge中主要体现在一下功能：
 
 1. 可以轻松选择需要部署分支
 2. 可以从已经部署分支中剔除不需要分支
 3. 可见已经有哪些分支部署
-4. 冲突指名分支
+4. 协助解析冲突
 
-## 职责范围
+## 职责范围!
 
 LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤的上游，能让我们自由控制对分支的部署，能基于开发分支为粒度自由组合部署。
 
@@ -68,6 +68,32 @@ LightMerge 不等于自动构建、不等于自动部署、他处于这些步骤
 }
 ```
 
+一份范例
+```json
+{
+	"safeConfig": {
+		"privateKeyPosition": "C:\\Users\\MyUserName\\.ssh\\id_ecdsa"
+	},
+	"projectRepository": {
+		"projects": {
+			"TestProject": {
+				"projectName": "TestProject",
+				"remoteAddress": "git@github.com:buynowdev/lightmerge-test.git",
+				"swimlaneMap": {
+				    "dev": {
+                        "swimlaneName": "dev",
+                        "remotePushBranchName": "dev"
+				    },
+                    "sit": {
+                        "swimlaneName": "sit",
+                        "remotePushBranchName": "sit"
+                    }
+				}
+			}
+		}
+	}
+}
+```
 ### 启动
 
 - 下载 [lightmerge-x.jar](https://github.com/ZhaoYueNing/lightmerge/releases)

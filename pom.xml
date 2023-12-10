@@ -68,6 +68,10 @@
                 <checksumPolicy>fail</checksumPolicy>
             </snapshots>
         </repository>
+        <repository>
+            <id>jgit-repository</id>
+            <url>https://repo.eclipse.org/content/groups/releases/</url>
+        </repository>
     </repositories>
 
     <build>
